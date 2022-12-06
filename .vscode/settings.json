@@ -1,0 +1,4 @@
+{
+  "javascript.format.semicolons": "remove",
+  "editor.formatOnSave": true
+}

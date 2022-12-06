@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "shirakawa.journal",
-    "slug": "shirakawa.journal",
+    "name": "tokyo.journal",
+    "slug": "tokyo.journal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
