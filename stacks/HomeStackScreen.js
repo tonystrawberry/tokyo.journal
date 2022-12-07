@@ -14,7 +14,7 @@ const HomeStackScreen = () => {
     <Stack.Navigator initialRouteName="Menu">
       <Stack.Screen name="Menu" component={MenuScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Place" component={PlaceScreen} options={{ presentation: "modal", headerShown: false }} />
-      <Stack.Screen name="Category" component={CategoryScreen} options={{ presentation: "modal", headerShown: false }} />
+      <Stack.Screen name="Category" component={CategoryScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   )
 }
