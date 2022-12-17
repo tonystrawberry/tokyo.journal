@@ -1,4 +1,6 @@
 {
-  "javascript.format.semicolons": "remove",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "javascript.preferences.quoteStyle": "double",
+  "typescript.preferences.quoteStyle": "double",
+  "eslint.format.enable": true
 }

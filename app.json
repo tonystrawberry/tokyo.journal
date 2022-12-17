@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "tokyo.journal",
-    "slug": "tokyo.journal",
+    "name": "tokyo-journal",
+    "slug": "tokyo-journal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,7 +18,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "tonystrawberry.tokyojournal"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,6 +29,20 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox",
+          "RNMapboxMapsDownloadToken": ""
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f30258b7-9aa8-4a3a-b0c4-ecd63d9e1bee"
+      }
     }
   }
 }

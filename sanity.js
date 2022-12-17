@@ -1,5 +1,5 @@
 import sanityClient from "@sanity/client";
-import imageUrlBuilder from '@sanity/image-url';
+import imageUrlBuilder from "@sanity/image-url";
 
 const client = sanityClient({
   projectId: "fsashav3",
