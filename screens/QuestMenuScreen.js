@@ -1,7 +1,23 @@
 import { Text, SafeAreaView, Image, View, TouchableOpacity, ScrollView } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import sanityClient, { urlFor } from "../sanity";
+import { useNavigation } from "@react-navigation/native";
 
 const QuestMenuScreen = () => {
+  const navigation = useNavigation();
+
+  const [ quests, setQuests ] = useState([]);
+  useEffect(() => {
+    sanityClient.fetch(`
+        *[_type == 'quest'] {
+          ...
+        }
+      `).then((data) => {
+      setQuests(data);
+    });
+  }, []);
+
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View>
@@ -13,14 +29,14 @@ const QuestMenuScreen = () => {
             <Text className="text-3xl font-bold">Exciting Quests</Text>
           </View>
           <View className="flex-row mt-3">
-            <TouchableOpacity className="relative flex-1 rounded-lg overflow-hidden m-1">
-              <Image className="w-full h-56" source={{ uri: "https://images.unsplash.com/photo-1585574362839-63b0c1b09ad4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" }} resizeMode="cover" />
-              <Text className="absolute left-0 bottom-0 text-2xl font-bold text-white p-2">Discover Harajuku</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className="relative flex-1 rounded-lg overflow-hidden m-1">
-              <Image className="w-full h-56" source={{ uri: "https://images.unsplash.com/photo-1575585091067-4f630176d6c6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1618&q=80" }} resizeMode="cover" />
-              <Text className="absolute left-0 bottom-0 text-2xl font-bold text-white p-2">Discover Ginza</Text>
-            </TouchableOpacity>
+            {quests.map((quest, index) =>
+              <TouchableOpacity key={index} className="relative flex-1 rounded-lg overflow-hidden m-1"
+                onPress={() => { navigation.navigate("Quest", { questId: quest._id }); }}
+              >
+                <Image className="w-full h-56" source={{ uri: urlFor(quest.picture).url() }} resizeMode="cover" />
+                <Text className="absolute left-0 bottom-0 text-2xl font-bold text-white p-2">{quest.title}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </ScrollView>

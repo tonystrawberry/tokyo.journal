@@ -110,19 +110,22 @@ const PlaceScreen = ({ route, navigation }) => {
             <View className="flex-row text-xl font-bold">{place.categories.map((category, index) => <CategoryTag key={index} category={category} />)}</View>
           </View>
           {/* Content */}
-          <View className="px-4 pt-4">
-            <View className="flex-row items-center">
-              <View className={"mr-1 rounded-full bg-white"}>
-                <UilThumbsUp color={place.categories[ 0 ].color} size={20} />
+          {
+            place.content &&
+            <View className="px-4 pt-4">
+              <View className="flex-row items-center">
+                <View className={"mr-1 rounded-full bg-white"}>
+                  <UilThumbsUp color={place.categories[ 0 ].color} size={20} />
+                </View>
+                <Text className="text-md font-semibold">Description</Text>
               </View>
-              <Text className="text-md font-semibold">Description</Text>
+              <View className="mt-2">
+                <PortableText
+                  content={place.content}
+                />
+              </View>
             </View>
-            <View className="mt-2">
-              <PortableText
-                content={place.content}
-              />
-            </View>
-          </View>
+          }
           {/* Address and map */}
           <View>
             <View className="px-4 pt-4">
@@ -193,11 +196,9 @@ const styles = {
   }
 };
 
-
 PlaceScreen.propTypes = {
   route: PropTypes.object,
   navigation: PropTypes.object,
 };
-
 
 export default PlaceScreen;

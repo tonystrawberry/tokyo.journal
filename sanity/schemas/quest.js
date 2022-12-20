@@ -1,22 +1,22 @@
 export default {
-  name: 'place',
-  title: 'Place',
+  name: 'quest',
+  title: 'Quest',
   type: 'document',
   fields: [
+    {
+      name: 'area',
+      title: 'Area',
+      type: 'string',
+    },
     {
       name: 'title',
       title: 'Title',
       type: 'string',
     },
     {
-      name: 'geopoint',
-      title: 'Geopoint',
-      type: 'geopoint',
-    },
-    {
-      name: 'address',
-      title: 'Address',
-      type: 'string'
+      name: 'subtitle',
+      title: 'Subtitle',
+      type: 'string',
     },
     {
       name: 'picture',
@@ -27,15 +27,10 @@ export default {
       },
     },
     {
-      name: 'categories',
-      title: 'Categories',
+      name: 'waypoints',
+      title: 'Waypoints',
       type: 'array',
-      of: [ { type: 'reference', to: { type: 'category' } } ],
-    },
-    {
-      name: 'publishedAt',
-      title: 'Published at',
-      type: 'datetime',
+      of: [ { type: 'reference', to: { type: 'place' } }, { type: 'geopoint' } ],
     },
     {
       name: 'content',

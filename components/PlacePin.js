@@ -21,6 +21,7 @@ const PlacePin = ({ category, small }) => {
   // bg-[#AE8799]
   // bg-[#717EC3]
   // bg-[#496DDB]
+  // bg-[#88A47C]
 
   return (
     category ?
