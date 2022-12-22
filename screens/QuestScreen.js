@@ -101,12 +101,14 @@ const QuestScreen = ({ route, navigation }) => {
             </View>
             <View className="mt-2">
               <Timeline
+                style={{ paddingTop: 15, paddingBottom: 15 }}
                 data={waypointPlaces}
                 innerCircle="element"
                 circleColor="rgba(0,0,0,0)"
                 lineColor="#e2e8f0"
                 showTime={false}
                 detailContainerStyle={{ marginBottom: 30 }}
+                isUsingFlatlist={false}
                 options={{
                   style: { paddingTop: 15, paddingBottom: 15 }
                 }}
