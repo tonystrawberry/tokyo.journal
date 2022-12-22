@@ -1,11 +1,13 @@
 import * as Progress from "react-native-progress";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import sanityClient, { urlFor } from "../sanity";
 import { UilArrowLeft } from "@iconscout/react-native-unicons";
 import PortableText from "react-portable-text";
 import MapboxGL from "@rnmapbox/maps";
+import PlacePin from "../components/PlacePin";
+import Timeline from "../components/Timeline";
 
 const QuestScreen = ({ route, navigation }) => {
   const { questId } = route.params;
@@ -44,8 +46,25 @@ const QuestScreen = ({ route, navigation }) => {
       return [];
     }
 
-    return quest.waypoints.filter((waypoint) => (waypoint !== null));
+    return quest.waypoints
+      .filter((waypoint) => (waypoint !== null))
+      .map((waypoint) => {
+
+        return {
+          _id: waypoint._id,
+          title: waypoint.title,
+          description: <View className="bg-slate-100 p-2 px-3 rounded-md mt-2"><Text className="text-xs">{waypoint.shortDescription}</Text></View>,
+          time: "12:00",
+          lineWidth: 2,
+          icon: <PlacePin category={waypoint.categories[ 0 ]}
+          />
+        };
+      });
   }, [ quest ]);
+
+  const navigateToPlace = useCallback((item) => {
+    navigation.navigate("Place", { placeId: item._id });
+  });
 
   return (
     quest ? (
@@ -81,11 +100,18 @@ const QuestScreen = ({ route, navigation }) => {
               <Text className="text-md font-semibold">Checkpoints</Text>
             </View>
             <View className="mt-2">
-              {waypointPlaces.map((waypointPlace, index) => {
-                return (
-                  <Text key={index}>{waypointPlace.title}</Text>
-                );
-              })}
+              <Timeline
+                data={waypointPlaces}
+                innerCircle="element"
+                circleColor="rgba(0,0,0,0)"
+                lineColor="#e2e8f0"
+                showTime={false}
+                detailContainerStyle={{ marginBottom: 30 }}
+                options={{
+                  style: { paddingTop: 15, paddingBottom: 15 }
+                }}
+                onEventPress={navigateToPlace}
+              />
             </View>
           </View>
           {/* Map */}

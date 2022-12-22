@@ -38,6 +38,11 @@ export default {
       type: 'datetime',
     },
     {
+      name: 'shortDescription',
+      title: 'Short description',
+      type: 'string',
+    },
+    {
       name: 'content',
       title: 'Content',
       type: 'array',
