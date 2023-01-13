@@ -11,7 +11,13 @@ const PlaceCallout = (place) => {
 
   return (
     <TouchableOpacity className="flex-row rounded-lg shadow-lg bg-white justify-center items-center p-1" onPress={() => { navigation.navigate("Place", { placeId: place._id }); }}>
-      <Text className="text-center font-semibold ml-2">{place.title}</Text>
+      {
+        place.index != null &&
+        <View className="border px-1 rounded-sm justify-center items-center ml-2">
+          <Text className="font-bold text-md">{place.index}</Text>
+        </View>
+      }
+      <Text className="font-semibold ml-1">{place.title}</Text>
       <View className="ml-2">
         <UilArrowRight color="black" />
       </View>

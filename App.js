@@ -1,5 +1,5 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { getFocusedRouteNameFromRoute, NavigationContainer } from "@react-navigation/native";
 import QuestStackScreen from "./stacks/QuestStackScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MapStackScreen from "./stacks/MapStackScreen";
@@ -41,13 +41,20 @@ export default function App() {
           <Tab.Screen
             name="QuestStack"
             component={QuestStackScreen}
-            options={{
+            options={({ route }) => ({
               tabBarIcon: ({ color, size }) => (
                 <UilBullseye color={color} size={size} />
               ),
               tabBarLabel: "Quests",
-              headerShown: false
-            }} />
+              headerShown: false,
+              tabBarStyle: ((route) => {
+                const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+                if (routeName === "QuestDirection") {
+                  return { display: "none" };
+                }
+              })(route),
+            })}
+          />
 
           <Tab.Screen
             name="PlaceStack"

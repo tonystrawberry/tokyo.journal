@@ -30,7 +30,7 @@ export default {
       name: 'waypoints',
       title: 'Waypoints',
       type: 'array',
-      of: [ { type: 'reference', to: { type: 'place' } }, { type: 'geopoint' } ],
+      of: [ { title: 'Place', name: 'Place', type: 'reference', to: { type: 'place' } }, { title: 'Point', name: 'Point', type: 'reference', to: { type: 'point' } } ],
     },
     {
       name: 'content',
