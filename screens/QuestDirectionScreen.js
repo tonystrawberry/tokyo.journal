@@ -1,13 +1,17 @@
 import * as Progress from "react-native-progress";
-import { SafeAreaView, Text, TouchableOpacity, View } from "react-native";
+import { Platform, SafeAreaView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import sanityClient from "../sanity";
-import { UilMap, UilMapPin, UilMapPinAlt, UilTimes } from "@iconscout/react-native-unicons";
+import { UilMap, UilMapPin, UilMapPinAlt, UilNavigator, UilSurprise, UilTimes } from "@iconscout/react-native-unicons";
 import PlacePin from "../components/PlacePin";
 import { tomatoColor } from "../settings/colors";
 import MapboxGL from "@rnmapbox/maps";
 import PlaceCallout from "../components/PlaceCallout";
+import createMapLink from "react-native-open-maps";
+
+const MAX_ZOOM_LEVEL = 20;
+const MIN_ZOOM_LEVEL = 8;
 
 const QuestDirectionScreen = ({ route, navigation }) => {
   const { questId } = route.params;
@@ -15,6 +19,7 @@ const QuestDirectionScreen = ({ route, navigation }) => {
   const [ quest, setQuest ] = useState(null); // Place retrieved by ID
   const [ userLocation, setUserLocation ] = useState(null);
   const [ selectedPlace, setSelectedPlace ] = useState(null); // Selected place set when clicking on a map marker -> show a callout wehn selectedPlace is set
+  const [ currentDestination, setCurrentDestination ] = useState(null);
 
   /* Camera for MapBox */
   const camera = useRef(null);
@@ -41,8 +46,8 @@ const QuestDirectionScreen = ({ route, navigation }) => {
       }[0]
     `).then((data) => {
       setQuest(data);
+      setCurrentDestination(data.waypoints[ 0 ]);
     });
-
   }, []);
 
   const waypointPlaces = useMemo(() => {
@@ -115,15 +120,13 @@ const QuestDirectionScreen = ({ route, navigation }) => {
       places = quest.waypoints.filter((waypoint) => (waypoint._type === "place"));
     }
 
-    console.log("places", places);
-
     return (
       {
         "type": "FeatureCollection",
         "features": places.map((place, index) => (
           {
             "type": "Feature",
-            "properties": { ...place, ...{ color: place.categories[ 0 ].color, index: index } },
+            "properties": { ...place, ...{ color: place.categories[ 0 ].color, index: index + 1 } },
             "geometry": { "type": "Point", "coordinates": [ place.geopoint.lng, place.geopoint.lat, 0.0 ] }
           }))
       }
@@ -150,7 +153,7 @@ const QuestDirectionScreen = ({ route, navigation }) => {
         "features": [
           {
             "type": "Feature",
-            "properties": { ...startWaypoint, ...{ type: "start", icon: "map-marker-start-custom" } },
+            "properties": { ...startWaypoint, ...{ type: "start", icon: "pin-custom" } },
             "geometry": { "type": "Point", "coordinates": [ startWaypoint.geopoint.lng, startWaypoint.geopoint.lat, 0.0 ] }
           },
           {
@@ -185,84 +188,102 @@ const QuestDirectionScreen = ({ route, navigation }) => {
     camera.current?.fitBounds([ bounds.minLongitude, bounds.minLatitude ], [ bounds.maxLongitude, bounds.maxLatitude ], 30, 1000);
   };
 
+  const openDirectionToStartingPoint = () => {
+    createMapLink({
+      provider: "google", end: `${quest.waypoints[ 0 ].geopoint.lat},${quest.waypoints[ 0 ].geopoint.lng}`
+    });
+  };
+
   return (
     quest ? (
       <View className="relative flex-1">
         {/* Map showing full srcreen */}
-        <MapboxGL.MapView styleURL="mapbox://styles/tonystrawberry/clbgllug7000416lhf57qlzdg" style={{ flex: 1 }}>
-          {selectedPlace &&
-            <MapboxGL.MarkerView
-              coordinate={[ selectedPlace.geopoint.lng, selectedPlace.geopoint.lat ]}
-              anchor={{ x: 0.5, y: 1.65 }}
-            >
-              <PlaceCallout {...selectedPlace} />
-            </MapboxGL.MarkerView>
-          }
+        <TouchableWithoutFeedback className="flex-1 w-100"
+          onPress={() => { setSelectedPlace(null); }}
+        >
+          <MapboxGL.MapView styleURL="mapbox://styles/tonystrawberry/clbgllug7000416lhf57qlzdg" style={{ flex: 1 }}>
+            {selectedPlace &&
+              <MapboxGL.MarkerView
+                coordinate={[ selectedPlace.geopoint.lng, selectedPlace.geopoint.lat ]}
+                anchor={{ x: 0.5, y: 1.65 }}
+              >
+                <PlaceCallout {...selectedPlace} />
+              </MapboxGL.MarkerView>
+            }
 
-          <MapboxGL.UserLocation
-            onUpdate={(location) => { setUserLocation([ location.coords.longitude, location.coords.latitude ]); }}
-          />
-          <MapboxGL.Camera
-            ref={(el) => { camera.current = el; setCameraVisible(!!el); }}
-          />
-
-          {/* Start and end pins */}
-          <MapboxGL.ShapeSource
-            id="extremities"
-            shape={startEndShape}
-          >
-            <MapboxGL.SymbolLayer
-              id="extremitiesSymbolLayer"
-              sourceID="extremities"
-              style={styles.extremitiesSymbolLayer}
+            <MapboxGL.UserLocation
+              onUpdate={(location) => { setUserLocation([ location.coords.longitude, location.coords.latitude ]); }}
             />
-          </MapboxGL.ShapeSource>
-
-          {/* Place pins */}
-          <MapboxGL.ShapeSource
-            id="places"
-            shape={placesShape}
-            onPress={onShapePress}
-          >
-            <MapboxGL.CircleLayer
-              id="placesCircleLayer"
-              sourceID="places"
-              style={styles.placesCircleLayer}
-            />
-
-            <MapboxGL.SymbolLayer
-              id="placesSymbolLayer"
-              sourceID="places"
-              style={styles.placesSymbolLayer}
-            />
-          </MapboxGL.ShapeSource>
-
-          {/* Walking line */}
-          <MapboxGL.ShapeSource
-            id="walk-line"
-            shape={walkLineShape}
-          >
-            <MapboxGL.LineLayer
-              id={"linelayer"}
-              style={{
-                lineJoin: "bevel",
-                lineOpacity: 0.7,
-                visibility: "visible",
-                lineColor: "#22c55e",
-                lineWidth: 3,
-                lineDasharray: [ 1, 1 ],
-                lineCap: "square",
+            <MapboxGL.Camera
+              ref={(el) => { camera.current = el; setCameraVisible(!!el); }}
+              padding={1000}
+              maxZoomLevel={MAX_ZOOM_LEVEL}
+              minZoomLevel={MIN_ZOOM_LEVEL}
+              maxBounds={{
+                ne: [ bounds.minLongitude - 0.002, bounds.minLatitude - 0.002 ],
+                sw: [ bounds.maxLongitude + 0.002, bounds.maxLatitude + 0.002 ]
               }}
             />
-          </MapboxGL.ShapeSource>
-        </MapboxGL.MapView>
+
+            {/* Start and end pins */}
+            <MapboxGL.ShapeSource
+              id="extremities"
+              shape={startEndShape}
+            >
+              <MapboxGL.SymbolLayer
+                id="extremitiesSymbolLayer"
+                sourceID="extremities"
+                style={styles.extremitiesSymbolLayer}
+              />
+            </MapboxGL.ShapeSource>
+
+            {/* Place pins */}
+            <MapboxGL.ShapeSource
+              id="places"
+              shape={placesShape}
+              onPress={onShapePress}
+            >
+              <MapboxGL.CircleLayer
+                id="placesCircleLayer"
+                sourceID="places"
+                style={styles.placesCircleLayer}
+              />
+
+              <MapboxGL.SymbolLayer
+                id="placesSymbolLayer"
+                sourceID="places"
+                style={styles.placesSymbolLayer}
+              />
+            </MapboxGL.ShapeSource>
+
+            {/* Walking line */}
+            <MapboxGL.ShapeSource
+              id="walk-line"
+              shape={walkLineShape}
+            >
+              <MapboxGL.LineLayer
+                id={"linelayer"}
+                style={{
+                  lineJoin: "bevel",
+                  lineOpacity: 0.7,
+                  visibility: "visible",
+                  lineColor: "#22c55e",
+                  lineWidth: 3,
+                  lineDasharray: [ 1, 1 ],
+                  lineCap: "square",
+                }}
+              />
+            </MapboxGL.ShapeSource>
+          </MapboxGL.MapView>
+        </TouchableWithoutFeedback>
 
         <View className="absolute bottom-28 right-3 z-10">
           <TouchableOpacity className="p-2 rounded-full bg-blue-500 mb-2" onPress={() => {
             camera.current?.setCamera({
               centerCoordinate: userLocation,
               animationMode: "flyTo",
-              animationDuration: 1000
+              animationDuration: 1000,
+
             });
           }}>
             <UilMapPin color="white" />
@@ -275,6 +296,7 @@ const QuestDirectionScreen = ({ route, navigation }) => {
 
         <SafeAreaView className="bg-white">
           <View className="flex-row px-5 py-3 items-center">
+
             <View className="mr-3">
               <Text className="font-light text-slate-400">
                 Next place
@@ -287,6 +309,16 @@ const QuestDirectionScreen = ({ route, navigation }) => {
             <TouchableOpacity className={`p-2 rounded-full bg-[${tomatoColor}] ml-auto`} onPress={() => { navigation.goBack(); }}>
               <UilTimes color="white" />
             </TouchableOpacity>
+
+            {/* <View className="mr-3 flex-1">
+              <View className="flex-row items-center">
+                <Text className="font-semibold text-md">You do not seem to be in the area. Please go to the starting point.</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity className="p-2 rounded-full bg-green-500 ml-auto" onPress={() => { openDirectionToStartingPoint(); }}>
+              <UilNavigator color="white" />
+            </TouchableOpacity> */}
           </View>
         </SafeAreaView >
       </View >
@@ -316,9 +348,9 @@ const styles = {
   extremitiesSymbolLayer: {
     iconImage: [ "get", "icon", [ "properties" ] ],
     iconColor: [ "get", "color", [ "properties" ] ],
-    iconSize: 1,
+    iconSize: 0.1,
     iconOpacity: 1,
-    iconOffset: [ 0, -10 ],
+    iconOffset: [ 0, -300 ],
     iconAllowOverlap: true,
     iconIgnorePlacement: true
   }

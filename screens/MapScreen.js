@@ -63,7 +63,7 @@ const MapScreen = () => {
 
     camera.current?.setCamera({
       centerCoordinate: CENTER_COORDINATE,
-      maxBounds: [ MAX_BOUNDS.ne, MAX_BOUNDS.sw ]
+      maxBounds: [ [ 138.4983174359129, 34.531641940574325 ], [ 141.01054553647947, 36.90017022929824 ] ]
     });
   }, []);
 
@@ -218,7 +218,7 @@ const MapScreen = () => {
       <TouchableWithoutFeedback className="flex-1 w-100"
         onPress={() => { setSelectedPlace(null); }}
       >
-        <MapboxGL.MapView styleURL="mapbox://styles/tonystrawberry/clbgllug7000416lhf57qlzdg" style={{ flex: 1 }}>
+        <MapboxGL.MapView style={{ flex: 1 }}>
           {selectedPlace &&
             <MapboxGL.MarkerView
               coordinate={[ selectedPlace.geopoint.lng, selectedPlace.geopoint.lat ]}

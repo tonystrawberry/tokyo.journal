@@ -10,3 +10,11 @@
 ## 🖥 Mobile application for helping tourists discover amazing places in Tokyo
 
 - 🛠 Built with <a href="https://reactnative.dev/" target="_blank">React Native</a>
+
+## ⚙️ Build
+
+Check `eas.json` containing all the different build `profile`.
+
+```
+eas build --platform ios --profile development
+```
