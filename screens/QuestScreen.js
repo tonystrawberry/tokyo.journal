@@ -90,8 +90,7 @@ const QuestScreen = ({ route, navigation }) => {
           description: <View className="bg-slate-100 p-2 px-3 rounded-md mt-2"><Text className="text-xs">{waypoint.shortDescription}</Text></View>,
           time: "12:00",
           lineWidth: 2,
-          icon: <PlacePin category={waypoint.categories[ 0 ]}
-          />
+          icon: <PlacePin category={waypoint.categories[ 0 ]} />
         };
       });
   }, [ quest ]);

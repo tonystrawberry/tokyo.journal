@@ -1,6 +1,6 @@
 import * as Progress from "react-native-progress";
-import { Platform, SafeAreaView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Button, Modal, Platform, Pressable, SafeAreaView, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import sanityClient from "../sanity";
 import { UilMap, UilMapPin, UilMapPinAlt, UilNavigator, UilSurprise, UilTimes } from "@iconscout/react-native-unicons";
@@ -11,7 +11,7 @@ import PlaceCallout from "../components/PlaceCallout";
 import createMapLink from "react-native-open-maps";
 
 const MAX_ZOOM_LEVEL = 20;
-const MIN_ZOOM_LEVEL = 8;
+const MIN_ZOOM_LEVEL = 1;
 
 const QuestDirectionScreen = ({ route, navigation }) => {
   const { questId } = route.params;
@@ -20,6 +20,32 @@ const QuestDirectionScreen = ({ route, navigation }) => {
   const [ userLocation, setUserLocation ] = useState(null);
   const [ selectedPlace, setSelectedPlace ] = useState(null); // Selected place set when clicking on a map marker -> show a callout wehn selectedPlace is set
   const [ currentDestination, setCurrentDestination ] = useState(null);
+  const [ initializationModalVisible, setInitializationModalVisible ] = useState(false);
+  const [ placesModalVisible, setPlacesModalVisible ] = useState(false);
+
+  const [ questState, setQuestState ] = useState("loading");
+
+  const [ opacity ] = useState(new Animated.Value(1));
+  const [ radius ] = useState(new Animated.Value(15));
+
+  const expandAnimation = Animated.parallel([
+    Animated.timing(opacity, {
+      toValue: 0.5,
+      duration: 1000,
+      useNativeDriver: false,
+    }),
+    Animated.timing(radius, {
+      toValue: 15 * 2,
+      duration: 1000,
+      useNativeDriver: false,
+    }),
+  ]);
+
+  const circleAnimation = Animated.loop(expandAnimation);
+
+  useEffect(() => {
+    circleAnimation.start();
+  }, [ circleAnimation ]);
 
   /* Camera for MapBox */
   const camera = useRef(null);
@@ -49,6 +75,50 @@ const QuestDirectionScreen = ({ route, navigation }) => {
       setCurrentDestination(data.waypoints[ 0 ]);
     });
   }, []);
+
+  useEffect(() => {
+    if (!userLocation || !bounds) {
+      return;
+    }
+
+    if (![ "loading" ].includes(questState)) {
+      return;
+    }
+
+    if (inBoundingBox(
+      [ bounds.minLongitude - 0.004, bounds.minLatitude - 0.004 ],
+      [ bounds.maxLongitude + 0.004, bounds.maxLongitude + 0.004 ],
+      [ userLocation[ 0 ], userLocation[ 1 ] ]
+    )) {
+      console.log("Inside the zone");
+      setQuestState("inAreaPending");
+      setInitializationModalVisible(true);
+    } else {
+      console.log("Outside the zone");
+      setQuestState("notInAreaPending");
+      setInitializationModalVisible(true);
+    }
+  }, [ userLocation, bounds ]);
+
+
+  const selectBrowseArea = () => {
+    setQuestState("browsing");
+
+    setInitializationModalVisible(false);
+  };
+
+  const selectChoosePlace = () => {
+    setQuestState("choosePlace");
+    setInitializationModalVisible(false);
+    setPlacesModalVisible(true);
+  };
+
+  const inBoundingBox = (bottomLeft, topRight, point) => {
+    const isLongInRange = point[ 0 ] >= bottomLeft[ 0 ] && point[ 0 ] <= topRight[ 0 ];
+    const isLatiInRange = point[ 1 ] >= bottomLeft[ 1 ] && point[ 1 ] <= topRight[ 1 ];
+    return (isLongInRange && isLatiInRange);
+  };
+
 
   const waypointPlaces = useMemo(() => {
     if (!quest || !quest.waypoints) {
@@ -103,6 +173,7 @@ const QuestDirectionScreen = ({ route, navigation }) => {
 
     const maxLatitude = Math.max(...quest.waypoints.map((waypoint) => (waypoint.geopoint.lat)));
     const minLatitude = Math.min(...quest.waypoints.map((waypoint) => (waypoint.geopoint.lat)));
+
 
     return {
       maxLongitude: maxLongitude,
@@ -169,10 +240,21 @@ const QuestDirectionScreen = ({ route, navigation }) => {
 
   /* Listener for press event on layers */
   const onShapePress = async (e) => {
-    const feature = e.features[ 0 ];
 
-    setSelectedPlace(feature.properties);
+    if (questState == "choosePlace") {
+      const feature = e.features[ 0 ];
+
+      setSelectedPlace(feature.properties);
+    } else {
+      const feature = e.features[ 0 ];
+
+      setSelectedPlace(feature.properties);
+    }
   };
+
+  const startFromPlace = useCallback((item) => {
+
+  });
 
 
   useEffect(() => {
@@ -197,6 +279,49 @@ const QuestDirectionScreen = ({ route, navigation }) => {
   return (
     quest ? (
       <View className="relative flex-1">
+        <Button title="Snap To 90%" onPress={() => handleSnapPress(2)} />
+        <Button title="Snap To 50%" onPress={() => handleSnapPress(1)} />
+        <Button title="Snap To 25%" onPress={() => handleSnapPress(0)} />
+        <Button title="Close" onPress={() => handleClosePress()} />
+        <BottomSheet
+          ref={sheetRef}
+          index={1}
+          snapPoints={snapPoints}
+          onChange={handleSheetChange}
+        >
+          <BottomSheetScrollView contentContainerStyle={styles.contentContainer}>
+            {data.map(renderItem)}
+          </BottomSheetScrollView>
+        </BottomSheet>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={initializationModalVisible}>
+          <View className="justify-center items-center h-full">
+            <View className="bg-white rounded-lg px-4 py-4">
+              <Text className="text-lg font-semibold">{
+                questState == "notInAreaPending" ? "You're not in the quest zone yet." : "Let's get started"
+              }</Text>
+              <TouchableOpacity className="bg-green-400 p-2 rounded-lg mt-2 mb-1" onPress={openDirectionToStartingPoint}>
+                <Text className="text-white font-semibold">Let's start from here</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity className="bg-red-400 p-2 rounded-lg mt-2 mb-1" onPress={openDirectionToStartingPoint}>
+                <Text className="text-white font-semibold">Get me to the starting point</Text>
+              </TouchableOpacity>
+              {
+                questState == "inAreaPending" &&
+                <TouchableOpacity className="bg-blue-400 p-2 rounded-lg mt-2 mb-1" onPress={selectChoosePlace}>
+                  <Text className="text-white font-semibold">Let me choose where to start</Text>
+                </TouchableOpacity>
+              }
+              <TouchableOpacity className="bg-yellow-400 p-2 rounded-lg mb-2 mt-1" onPress={selectBrowseArea}>
+                <Text className="text-white font-semibold">Let me just browse the quest map</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         {/* Map showing full srcreen */}
         <TouchableWithoutFeedback className="flex-1 w-100"
           onPress={() => { setSelectedPlace(null); }}
@@ -219,10 +344,10 @@ const QuestDirectionScreen = ({ route, navigation }) => {
               padding={1000}
               maxZoomLevel={MAX_ZOOM_LEVEL}
               minZoomLevel={MIN_ZOOM_LEVEL}
-              maxBounds={{
-                ne: [ bounds.minLongitude - 0.002, bounds.minLatitude - 0.002 ],
-                sw: [ bounds.maxLongitude + 0.002, bounds.maxLatitude + 0.002 ]
-              }}
+            // maxBounds={{
+            //   ne: [ bounds.minLongitude - 0.002, bounds.minLatitude - 0.002 ],
+            //   sw: [ bounds.maxLongitude + 0.002, bounds.maxLatitude + 0.002 ]
+            // }}
             />
 
             {/* Start and end pins */}
@@ -243,10 +368,10 @@ const QuestDirectionScreen = ({ route, navigation }) => {
               shape={placesShape}
               onPress={onShapePress}
             >
-              <MapboxGL.CircleLayer
+              <MapboxGL.Animated.CircleLayer
                 id="placesCircleLayer"
                 sourceID="places"
-                style={styles.placesCircleLayer}
+                style={[ styles.placesCircleLayer, { circleRadius: radius, circleOpacity: opacity } ]}
               />
 
               <MapboxGL.SymbolLayer

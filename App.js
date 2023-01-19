@@ -10,6 +10,7 @@ import { store } from "./store";
 import { Provider } from "react-redux";
 import { tomatoColor } from "./settings/colors";
 import PlaceStackScreen from "./stacks/PlaceStackScreen";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 /**
  * Entrypoint of the application
@@ -24,50 +25,52 @@ export default function App() {
   };
 
   return (
-    <Provider store={store}>
-      <NavigationContainer>
-        <Tab.Navigator screenOptions={screenOptions}>
-          <Tab.Screen
-            name="MapStack"
-            component={MapStackScreen}
-            options={{
-              tabBarIcon: ({ color, size }) => (
-                <UilMapMarkerAlt color={color} size={size} />
-              ),
-              tabBarLabel: "Map",
-              headerShown: false
-            }} />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <NavigationContainer>
+          <Tab.Navigator screenOptions={screenOptions}>
+            <Tab.Screen
+              name="MapStack"
+              component={MapStackScreen}
+              options={{
+                tabBarIcon: ({ color, size }) => (
+                  <UilMapMarkerAlt color={color} size={size} />
+                ),
+                tabBarLabel: "Map",
+                headerShown: false
+              }} />
 
-          <Tab.Screen
-            name="QuestStack"
-            component={QuestStackScreen}
-            options={({ route }) => ({
-              tabBarIcon: ({ color, size }) => (
-                <UilBullseye color={color} size={size} />
-              ),
-              tabBarLabel: "Quests",
-              headerShown: false,
-              tabBarStyle: ((route) => {
-                const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-                if (routeName === "QuestDirection") {
-                  return { display: "none" };
-                }
-              })(route),
-            })}
-          />
+            <Tab.Screen
+              name="QuestStack"
+              component={QuestStackScreen}
+              options={({ route }) => ({
+                tabBarIcon: ({ color, size }) => (
+                  <UilBullseye color={color} size={size} />
+                ),
+                tabBarLabel: "Quests",
+                headerShown: false,
+                tabBarStyle: ((route) => {
+                  const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+                  if (routeName === "QuestDirection") {
+                    return { display: "none" };
+                  }
+                })(route),
+              })}
+            />
 
-          <Tab.Screen
-            name="PlaceStack"
-            component={PlaceStackScreen}
-            options={{
-              tabBarIcon: ({ color, size }) => (
-                <UilShop color={color} size={size} />
-              ),
-              tabBarLabel: "Places",
-              headerShown: false
-            }} />
-        </Tab.Navigator>
-      </NavigationContainer>
-    </Provider>
+            <Tab.Screen
+              name="PlaceStack"
+              component={PlaceStackScreen}
+              options={{
+                tabBarIcon: ({ color, size }) => (
+                  <UilShop color={color} size={size} />
+                ),
+                tabBarLabel: "Places",
+                headerShown: false
+              }} />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }
