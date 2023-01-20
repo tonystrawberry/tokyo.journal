@@ -10,6 +10,7 @@
     "lint": "eslint --fix --ext .jsx --ext .js ."
   },
   "dependencies": {
+    "@gorhom/bottom-sheet": "^4.4.5",
     "@iconscout/react-native-unicons": "^1.0.3",
     "@portabletext/to-html": "^1.0.4",
     "@react-navigation/bottom-tabs": "^6.4.3",

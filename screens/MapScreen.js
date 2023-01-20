@@ -71,6 +71,7 @@ const MapScreen = () => {
   useEffect(() => {
     if (selectedCategory) {
       const filteredPlaces = places.filter((place) => (place.categories.map(category => category._id).includes(selectedCategory._id)));
+      console.log("filteredPlaces", filteredPlaces);
       setFilteredPlaces(filteredPlaces);
     } else {
       setFilteredPlaces(places);
@@ -218,7 +219,7 @@ const MapScreen = () => {
       <TouchableWithoutFeedback className="flex-1 w-100"
         onPress={() => { setSelectedPlace(null); }}
       >
-        <MapboxGL.MapView style={{ flex: 1 }}>
+        <MapboxGL.MapView styleURL="mapbox://styles/tonystrawberry/clbgllug7000416lhf57qlzdg" style={{ flex: 1 }}>
           {selectedPlace &&
             <MapboxGL.MarkerView
               coordinate={[ selectedPlace.geopoint.lng, selectedPlace.geopoint.lat ]}
@@ -236,7 +237,7 @@ const MapScreen = () => {
           />
           <MapboxGL.ShapeSource
             ref={shapeSource}
-            id="earthquakes"
+            id="places"
             shape={shape}
             cluster={true}
             clusterMaxZoomLevel={14}
@@ -245,35 +246,28 @@ const MapScreen = () => {
           >
             <MapboxGL.CircleLayer
               id="clusters"
-              sourceID="earthquakes"
+              sourceID="places"
               filter={[ "has", "point_count" ]}
               style={styles.clustersCircleLayer}
             />
 
             <MapboxGL.SymbolLayer
               id="clusterCount"
-              sourceID="earthquakes"
+              sourceID="places"
               filter={[ "has", "point_count" ]}
               style={styles.clusterCountSymbolLayer}
             />
 
             <MapboxGL.CircleLayer
               id="unclusteredCircle"
-              sourceID="earthquakes"
+              sourceID="places"
               filter={[ "!", [ "has", "point_count" ] ]}
               style={styles.unclusteredPointCircleLayer}
             />
 
             <MapboxGL.SymbolLayer
               id="unclusteredSymbol"
-              sourceID="earthquakes"
-              filter={[ "!", [ "has", "point_count" ] ]}
-              style={styles.unclusteredPointSymbolLayer}
-            />
-
-            <MapboxGL.SymbolLayer
-              id="unclusteredSymbol"
-              sourceID="earthquakes"
+              sourceID="places"
               filter={[ "!", [ "has", "point_count" ] ]}
               style={styles.unclusteredPointSymbolLayer}
             />
